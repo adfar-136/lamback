@@ -1,14 +1,33 @@
 const mongoose = require('mongoose');
 
-const topicSchema = new mongoose.Schema({
-  title: {
+const contentBlockSchema = new mongoose.Schema({
+  type: {
     type: String,
-    required: true
+    required: true,
+    enum: ['text', 'heading', 'code', 'image']
   },
   content: {
     type: String,
     required: true
   },
+  metadata: {
+    language: String, // For code blocks
+    level: { // For headings
+      type: Number,
+      min: 1,
+      max: 6
+    },
+    alt: String, // For images
+    caption: String // For images
+  }
+});
+
+const topicSchema = new mongoose.Schema({
+  title: {
+    type: String,
+    required: true
+  },
+  content: [contentBlockSchema],
   order: {
     type: Number,
     default: 0

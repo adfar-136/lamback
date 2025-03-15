@@ -4,8 +4,8 @@ const contentBlockSchema = new mongoose.Schema({
   type: {
     type: String,
     required: true,
-    enum: ['text', 'heading', 'code', 'image']
-  },
+    enum: ['text', 'heading', 'code', 'image', 'list', 'quote', 'table', 'video', 'link', 'button', 'divider']
+},
   content: {
     type: String,
     required: true

@@ -24,7 +24,6 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 //  MongoDB Connection
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://variableverse:test@cluster0.g6wyh.mongodb.net/lamicons';
-console.log("adfar",MONGODB_URI)
 mongoose.connect(MONGODB_URI)
   .then(() => console.log('Connected to MongoDB'))
   .catch((error) => console.error('MongoDB connection error:', error));

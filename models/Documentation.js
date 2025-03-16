@@ -4,11 +4,17 @@ const contentBlockSchema = new mongoose.Schema({
   type: {
     type: String,
     required: true,
-    enum: ['text', 'heading', 'code', 'image', 'list', 'quote', 'table', 'video', 'link', 'button', 'divider']
+    enum: ['text', 'heading', 'code', 'image', 'quote', 'table', 'link', 'ordered-list', 'unordered-list']
 },
   content: {
     type: String,
-    required: true
+    required: true,
+    validate: {
+      validator: function(value) {
+        return typeof value === 'string';
+      },
+      message: 'Content must be a string'
+    }
   },
   metadata: {
     language: String, // For code blocks
@@ -18,7 +24,11 @@ const contentBlockSchema = new mongoose.Schema({
       max: 6
     },
     alt: String, // For images
-    caption: String // For images
+    caption: String, // For images
+    listType: { // For lists
+      type: String,
+      enum: ['ordered', 'unordered']
+    }
   }
 });
 

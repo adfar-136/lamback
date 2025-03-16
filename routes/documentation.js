@@ -90,7 +90,7 @@ router.post('/technologies/:slug/topics', async (req, res) => {
     // Validate content blocks
     if (content && Array.isArray(content)) {
       for (const block of content) {
-        if (!block.type || !['text', 'heading', 'code', 'image', 'list', 'quote', 'table', 'video', 'link', 'button', 'divider'].includes(block.type)) {
+        if (!block.type || !['text', 'heading', 'code', 'image', 'quote', 'table', 'video', 'link', 'button', 'divider', 'ordered-list', 'unordered-list'].includes(block.type)) {
           return res.status(400).json({ message: 'Invalid content block type' });
         }
         
@@ -110,6 +110,11 @@ router.post('/technologies/:slug/topics', async (req, res) => {
 
         if (block.type === 'image' && (!block.metadata || !block.metadata.alt)) {
           return res.status(400).json({ message: 'Image blocks require alt text' });
+        }
+
+        if ((block.type === 'ordered-list' || block.type === 'unordered-list') && 
+            (!Array.isArray(block.content))) {
+          return res.status(400).json({ message: 'List blocks require an array of list items' });
         }
       }
     }
@@ -151,7 +156,7 @@ router.post('/technologies/:techSlug/topics/:topicSlug/content', async (req, res
 
     // Validate content blocks
     for (const block of contentBlocks) {
-      if (!block.type || !['text', 'heading', 'code', 'image', 'list', 'quote', 'table', 'video', 'link', 'button', 'divider'].includes(block.type)) {
+      if (!block.type || !['text', 'heading', 'code', 'image', 'quote', 'table', 'video', 'link', 'button', 'divider', 'ordered-list', 'unordered-list'].includes(block.type)) {
         return res.status(400).json({ message: 'Invalid content block type' });
       }
       
@@ -171,6 +176,26 @@ router.post('/technologies/:techSlug/topics/:topicSlug/content', async (req, res
 
       if (block.type === 'image' && (!block.metadata || !block.metadata.alt)) {
         return res.status(400).json({ message: 'Image blocks require alt text' });
+      }
+
+      if (block.type === 'quote' && (!block.metadata || !block.metadata.author)) {
+        return res.status(400).json({ message: 'Quote blocks require an author' });
+      }
+
+      if (block.type === 'table' && (!block.metadata || !block.metadata.headers || !Array.isArray(block.metadata.headers))) {
+        return res.status(400).json({ message: 'Table blocks require headers array' });
+      }
+
+      if (block.type === 'video' && (!block.metadata || !block.metadata.url)) {
+        return res.status(400).json({ message: 'Video blocks require a URL' });
+      }
+
+      if (block.type === 'link' && (!block.metadata || !block.metadata.url)) {
+        return res.status(400).json({ message: 'Link blocks require a URL' });
+      }
+
+      if (block.type === 'button' && (!block.metadata || !block.metadata.url || !block.metadata.style)) {
+        return res.status(400).json({ message: 'Button blocks require a URL and style' });
       }
     }
 

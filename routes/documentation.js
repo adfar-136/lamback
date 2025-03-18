@@ -90,7 +90,7 @@ router.post('/technologies/:slug/topics', async (req, res) => {
     // Validate content blocks
     if (content && Array.isArray(content)) {
       for (const block of content) {
-        if (!block.type || !['text', 'heading', 'code', 'image', 'quote', 'table', 'video', 'link', 'button', 'divider', 'ordered-list', 'unordered-list'].includes(block.type)) {
+        if (!block.type || !['text', 'heading', 'code', 'image', 'quote', 'table', 'video', 'link', 'button', 'divider'].includes(block.type)) {
           return res.status(400).json({ message: 'Invalid content block type' });
         }
         
@@ -110,11 +110,6 @@ router.post('/technologies/:slug/topics', async (req, res) => {
 
         if (block.type === 'image' && (!block.metadata || !block.metadata.alt)) {
           return res.status(400).json({ message: 'Image blocks require alt text' });
-        }
-
-        if ((block.type === 'ordered-list' || block.type === 'unordered-list') && 
-            (!Array.isArray(block.content))) {
-          return res.status(400).json({ message: 'List blocks require an array of list items' });
         }
       }
     }
@@ -156,7 +151,7 @@ router.post('/technologies/:techSlug/topics/:topicSlug/content', async (req, res
 
     // Validate content blocks
     for (const block of contentBlocks) {
-      if (!block.type || !['text', 'heading', 'code', 'image', 'quote', 'table', 'video', 'link', 'button', 'divider', 'ordered-list', 'unordered-list'].includes(block.type)) {
+      if (!block.type || !['text', 'heading', 'code', 'image', 'quote', 'table', 'video', 'link', 'button', 'divider'].includes(block.type)) {
         return res.status(400).json({ message: 'Invalid content block type' });
       }
       
@@ -198,6 +193,8 @@ router.post('/technologies/:techSlug/topics/:topicSlug/content', async (req, res
         return res.status(400).json({ message: 'Button blocks require a URL and style' });
       }
     }
+
+    // Add new content blocks to the topic
 
     // Add new content blocks to the topic
     technology.topics[topicIndex].content = [

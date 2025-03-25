@@ -3,52 +3,24 @@ const mongoose = require('mongoose');
 const techStackSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true,
+    required: [true, 'Tech stack name is required'],
     unique: true,
     trim: true
   },
   description: {
     type: String,
-    required: true
+    required: [true, 'Description is required']
   },
   icon: {
     type: String,
-    default: 'default-stack-icon.svg'
+    default: 'default-icon.png'
   },
-  levels: [{
-    name: {
-      type: String,
-      required: true,
-      enum: ['Beginner', 'Intermediate', 'Advanced']
-    },
-    description: {
-      type: String,
-      required: true
-    },
-    requiredScore: {
-      type: Number,
-      required: true,
-      min: 0,
-      max: 100
-    }
-  }],
   isActive: {
     type: Boolean,
     default: true
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now
   }
-});
-
-techStackSchema.pre('save', function(next) {
-  this.updatedAt = Date.now();
-  next();
+}, {
+  timestamps: true
 });
 
 module.exports = mongoose.model('TechStack', techStackSchema);

@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const quizAttemptSchema = new mongoose.Schema({
-  student: {
+  user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
@@ -11,69 +11,40 @@ const quizAttemptSchema = new mongoose.Schema({
     ref: 'TechStack',
     required: true
   },
-  level: {
+  difficulty: {
     type: String,
-    required: true,
-    enum: ['Beginner', 'Intermediate', 'Advanced']
+    enum: ['beginner', 'intermediate', 'advanced'],
+    required: true
   },
   questions: [{
     question: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Question',
-      required: true
+      ref: 'Question'
     },
     selectedOption: {
-      type: Number,
-      required: true,
-      default: -1 // Default value for unanswered questions
+      type: Number
     },
     isCorrect: {
-      type: Boolean,
-      required: true
+      type: Boolean
     },
     timeSpent: {
-      type: Number,
-      required: true,
-      min: 0
+      type: Number
     }
   }],
   totalScore: {
     type: Number,
-    required: true,
     default: 0
   },
-  totalQuestions: {
+  totalTime: {
     type: Number,
-    required: true
+    default: 0
   },
-  percentageScore: {
-    type: Number,
-    required: true,
-    min: 0,
-    max: 100
-  },
-  totalTimeSpent: {
-    type: Number,
-    required: true,
-    min: 0
-  },
-  completedAt: {
-    type: Date,
-    required: true,
-    default: Date.now
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
+  completed: {
+    type: Boolean,
+    default: false
   }
+}, {
+  timestamps: true
 });
-
-// Virtual for calculating pass/fail status
-quizAttemptSchema.virtual('isPassed').get(function() {
-  return this.percentageScore >= 70; // 70% is passing score
-});
-
-// Index for efficient querying
-quizAttemptSchema.index({ student: 1, techStack: 1, createdAt: -1 });
 
 module.exports = mongoose.model('QuizAttempt', quizAttemptSchema);

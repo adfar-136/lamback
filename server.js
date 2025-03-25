@@ -5,22 +5,16 @@ const mongoose = require('mongoose');
 const authRoutes = require('./routes/auth');
 const profileRoutes = require('./routes/profile');
 const documentationRoutes = require('./routes/documentation');
-const techStackRoutes = require('./routes/techstack');
 const companyRequirementRoutes = require('./routes/company-requirements');
 const contactRoutes = require('./routes/contact');
 const codingRoutes = require('./routes/coding');
+const practiceRoutes = require('./routes/practice');
 
 const app = express();
 // Middleware
 dotenv.config();
-app.use(cors({
-  origin: ['http://localhost:5174','http://localhost:5173','https://lamicons.com','https://www.lamicons.com'],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  exposedHeaders: ['Access-Control-Allow-Origin']
-}));
-app.use(express.json({ limit: '50mb' }));
+app.use(cors());
+app.use(express.json());
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 //  MongoDB Connection
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://variableverse:test@cluster0.g6wyh.mongodb.net/lamicons';
@@ -33,15 +27,15 @@ mongoose.connect(MONGODB_URI)
 app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/documentation', documentationRoutes);
-app.use('/api/techstack', techStackRoutes);
 app.use('/api/company-requirements', companyRequirementRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/coding', codingRoutes);
+app.use('/api/practice', practiceRoutes);
 
 app.get('/', (req, res) => {
   res.json({ message: 'Welcome to Lamicons API' });
 });
-
+ 
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);

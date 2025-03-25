@@ -81,21 +81,36 @@ router.post('/technologies/:slug/topics', async (req, res) => {
       return res.status(404).json({ message: 'Technology not found' });
     }
 
-    // Check if topic with the same slug already exists
+    // Check if topic exists
     const topicExists = technology.topics.some(t => t.slug && t.slug.toLowerCase() === topicSlug.toLowerCase());
     if (topicExists) {
       return res.status(400).json({ message: 'Topic with this slug already exists' });
     }
 
-    // Validate content blocks
+    // Validate and process content blocks
     if (content && Array.isArray(content)) {
       for (const block of content) {
-        if (!block.type || !['text', 'heading', 'code', 'image', 'quote', 'table', 'video', 'link', 'button', 'divider'].includes(block.type)) {
-          return res.status(400).json({ message: 'Invalid content block type' });
-        }
-        
-        if (!block.content) {
-          return res.status(400).json({ message: 'Content is required for each block' });
+        if (block.type === 'ordered-list' || block.type === 'unordered-list') {
+          // Ensure items exist and are valid
+          if (!block.metadata?.items || !Array.isArray(block.metadata.items)) {
+            return res.status(400).json({ message: 'List blocks require items array' });
+          }
+
+          // Filter out empty items
+          const validItems = block.metadata.items.filter(item => item.trim() !== '');
+          
+          if (validItems.length === 0) {
+            return res.status(400).json({ message: 'List must contain at least one non-empty item' });
+          }
+
+          // Store items in both content and metadata
+          block.content = validItems; // Store as array in content
+          block.metadata.items = validItems;
+        } else {
+          // For non-list types, ensure content is a non-empty string
+          if (!block.content || typeof block.content !== 'string' || block.content.trim() === '') {
+            return res.status(400).json({ message: 'Content is required and must be a non-empty string for non-list blocks' });
+          }
         }
 
         // Validate metadata based on block type
@@ -126,6 +141,7 @@ router.post('/technologies/:slug/topics', async (req, res) => {
 
     res.status(201).json(newTopic);
   } catch (err) {
+    console.error('Error adding topic:', err);
     res.status(500).json({ message: err.message });
   }
 });
@@ -149,63 +165,45 @@ router.post('/technologies/:techSlug/topics/:topicSlug/content', async (req, res
       return res.status(404).json({ message: 'Topic not found' });
     }
 
-    // Validate content blocks
-    for (const block of contentBlocks) {
-      if (!block.type || !['text', 'heading', 'code', 'image', 'quote', 'table', 'video', 'link', 'button', 'divider'].includes(block.type)) {
-        return res.status(400).json({ message: 'Invalid content block type' });
-      }
-      
-      if (!block.content) {
-        return res.status(400).json({ message: 'Content is required for each block' });
-      }
+    // Process content blocks
+    const processedBlocks = contentBlocks.map(block => {
+      if (block.type === 'ordered-list' || block.type === 'unordered-list') {
+        // Ensure items exist and are valid
+        if (!block.metadata?.items || !Array.isArray(block.metadata.items)) {
+          throw new Error('List blocks require items array');
+        }
 
-      // Validate metadata based on block type
-      if (block.type === 'heading' && (!block.metadata || !block.metadata.level || 
-          block.metadata.level < 1 || block.metadata.level > 6)) {
-        return res.status(400).json({ message: 'Heading blocks require a valid level (1-6)' });
-      }
+        // Filter out empty items
+        const validItems = block.metadata.items.filter(item => item.trim() !== '');
+        
+        if (validItems.length === 0) {
+          throw new Error('List must contain at least one non-empty item');
+        }
 
-      if (block.type === 'code' && (!block.metadata || !block.metadata.language)) {
-        return res.status(400).json({ message: 'Code blocks require a language' });
+        // Store items in both content and metadata
+        return {
+          ...block,
+          content: validItems, // Store as array in content
+          metadata: {
+            ...block.metadata,
+            items: validItems
+          }
+        };
       }
-
-      if (block.type === 'image' && (!block.metadata || !block.metadata.alt)) {
-        return res.status(400).json({ message: 'Image blocks require alt text' });
-      }
-
-      if (block.type === 'quote' && (!block.metadata || !block.metadata.author)) {
-        return res.status(400).json({ message: 'Quote blocks require an author' });
-      }
-
-      if (block.type === 'table' && (!block.metadata || !block.metadata.headers || !Array.isArray(block.metadata.headers))) {
-        return res.status(400).json({ message: 'Table blocks require headers array' });
-      }
-
-      if (block.type === 'video' && (!block.metadata || !block.metadata.url)) {
-        return res.status(400).json({ message: 'Video blocks require a URL' });
-      }
-
-      if (block.type === 'link' && (!block.metadata || !block.metadata.url)) {
-        return res.status(400).json({ message: 'Link blocks require a URL' });
-      }
-
-      if (block.type === 'button' && (!block.metadata || !block.metadata.url || !block.metadata.style)) {
-        return res.status(400).json({ message: 'Button blocks require a URL and style' });
-      }
-    }
-
-    // Add new content blocks to the topic
+      return block;
+    });
 
     // Add new content blocks to the topic
     technology.topics[topicIndex].content = [
       ...technology.topics[topicIndex].content,
-      ...contentBlocks
+      ...processedBlocks
     ];
 
     await technology.save();
 
     res.status(200).json(technology.topics[topicIndex]);
   } catch (err) {
+    console.error('Error adding content blocks:', err);
     res.status(500).json({ message: err.message });
   }
 });

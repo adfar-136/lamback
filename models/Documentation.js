@@ -4,22 +4,43 @@ const contentBlockSchema = new mongoose.Schema({
   type: {
     type: String,
     required: true,
-    enum: ['text', 'heading', 'code', 'image', 'quote', 'table', 'link']
-},
+    enum: ['text', 'heading', 'code', 'image', 'table', 'link', 'ordered-list', 'unordered-list']
+  },
   content: {
-    type: String,
-    required: true
+    type: mongoose.Schema.Types.Mixed,
+    validate: {
+      validator: function(value) {
+        // For list types, content can be empty since we use metadata.items
+        if (this.type === 'ordered-list' || this.type === 'unordered-list') {
+          return true;
+        }
+        // For other types, content should be a non-empty string
+        return typeof value === 'string' && value.trim() !== '';
+      },
+      message: 'Content must be a non-empty string for non-list blocks'
+    }
   },
   metadata: {
-    language: String, // For code blocks
-    level: { // For headings
+    language: String,
+    level: {
       type: Number,
       min: 1,
       max: 6
     },
-    alt: String, // For images
-    caption: String, // For images
-
+    alt: String,
+    caption: String,
+    items: {
+      type: [String],
+      validate: {
+        validator: function(value) {
+          if (this.type === 'ordered-list' || this.type === 'unordered-list') {
+            return Array.isArray(value) && value.length > 0 && value.every(item => item.trim() !== '');
+          }
+          return true;
+        },
+        message: 'Lists must have at least one non-empty item'
+      }
+    }
   }
 });
 

@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const Profile = require('../models/Profile');
-const QuizAttempt = require('../models/QuizAttempt');
 const { protect } = require('../middleware/auth');
+const User = require('../models/User');
 
 // Create or update profile
 router.post('/', protect, async (req, res) => {
@@ -89,41 +89,6 @@ router.delete('/', protect, async (req, res) => {
   } catch (error) {
     console.error(error.message);
     res.status(500).json({ message: 'Server Error' });
-  }
-});
-
-// Get top 5 quiz attempts for current user
-router.get('/quiz-attempts', protect, async (req, res) => {
-  try {
-    const quizAttempts = await QuizAttempt.find({ student: req.user.id })
-      .populate('techStack', ['name', 'icon'])
-      .sort({ percentageScore: -1, completedAt: -1 })
-      .limit(5);
-
-    // Calculate overall statistics
-    const stats = {
-      totalAttempts: await QuizAttempt.countDocuments({ student: req.user.id }),
-      averageScore: await QuizAttempt.aggregate([
-        { $match: { student: req.user.id } },
-        { $group: { _id: null, avg: { $avg: "$percentageScore" } } }
-      ]).then(result => result[0]?.avg || 0),
-      totalPassed: await QuizAttempt.countDocuments({
-        student: req.user.id,
-        percentageScore: { $gte: 70 }
-      })
-    };
-
-    res.json({
-      quizAttempts,
-      stats: {
-        totalAttempts: stats.totalAttempts,
-        averageScore: Math.round(stats.averageScore * 10) / 10,
-        passRate: stats.totalAttempts ? Math.round((stats.totalPassed / stats.totalAttempts) * 100) : 0
-      }
-    });
-  } catch (error) {
-    console.error('Error fetching quiz attempts:', error);
-    res.status(500).json({ message: 'Error fetching quiz attempts' });
   }
 });
 

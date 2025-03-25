@@ -6,50 +6,41 @@ const questionSchema = new mongoose.Schema({
     ref: 'TechStack',
     required: true
   },
-  level: {
+  question: {
     type: String,
-    required: true,
-    enum: ['Beginner', 'Intermediate', 'Advanced']
-  },
-  questionText: {
-    type: String,
-    required: true,
+    required: [true, 'Question text is required'],
     trim: true
   },
   options: [{
     text: {
       type: String,
-      required: true,
-      trim: true
+      required: true
     },
     isCorrect: {
       type: Boolean,
-      required: true,
-      default: false
+      required: true
     }
   }],
   explanation: {
     type: String,
-    required: true,
-    trim: true
+    required: [true, 'Explanation is required']
   },
-  points: {
+  difficulty: {
+    type: String,
+    enum: ['beginner', 'intermediate', 'advanced'],
+    required: true
+  },
+  score: {
     type: Number,
     required: true,
-    default: 1,
-    min: 1
+    min: 1,
+    default: 1
   },
   timeLimit: {
     type: Number,
     required: true,
-    default: function() {
-      const timeLimits = {
-        'Beginner': 30,
-        'Intermediate': 45,
-        'Advanced': 60
-      };
-      return timeLimits[this.level];
-    }
+    min: 30,
+    default: 60
   },
   isActive: {
     type: Boolean,
@@ -59,27 +50,9 @@ const questionSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now
   }
-});
-
-// Set default timeLimit based on level before saving
-questionSchema.pre('save', function(next) {
-  const timeLimits = {
-    'Beginner': 30,
-    'Intermediate': 45,
-    'Advanced': 60
-  };
-  this.timeLimit = timeLimits[this.level];
-  this.updatedAt = Date.now();
-  next();
+}, {
+  timestamps: true
 });
 
 module.exports = mongoose.model('Question', questionSchema);

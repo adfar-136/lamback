@@ -7,45 +7,20 @@ const User = require('../models/User');
 // Create or update profile
 router.post('/', protect, async (req, res) => {
   try {
-    // Basic validation
-    if (!req.body.fullName) {
-      return res.status(400).json({ message: 'Full name is required' });
-    }
-
-    // Create profile fields object with basic data
     const profileFields = {
       user: req.user.id,
-      fullName: req.body.fullName.trim(),
-      phoneNumber: req.body.phoneNumber || null,
-      age: req.body.age || null,
-      gender: req.body.gender || null,
-      dob: req.body.dob || null,
-      linkedinUrl: req.body.linkedinUrl || null,
-      githubUrl: req.body.githubUrl || null
+      fullName: req.body.fullName,
+      age: req.body.age,
+      gender: req.body.gender,
+      image: req.body.image,
+      skills: req.body.skills,
+      dob: req.body.dob,
+      education: req.body.education,
+      phoneNumber: req.body.phoneNumber,
+      linkedinUrl: req.body.linkedinUrl,
+      githubUrl: req.body.githubUrl
     };
 
-    // Handle skills array
-    profileFields.skills = Array.isArray(req.body.skills) 
-      ? req.body.skills.filter(skill => skill && skill.trim()) 
-      : [];
-
-    // Handle education array
-    if (Array.isArray(req.body.education)) {
-      profileFields.education = req.body.education
-        .filter(edu => edu.institution || edu.degree || edu.field)
-        .map(edu => ({
-          institution: edu.institution?.trim() || '',
-          degree: edu.degree?.trim() || '',
-          field: edu.field?.trim() || '',
-          startYear: edu.startYear || null,
-          endYear: edu.current ? null : (edu.endYear || null),
-          current: Boolean(edu.current)
-        }));
-    } else {
-      profileFields.education = [];
-    }
-
-    // Update or create profile
     let profile = await Profile.findOne({ user: req.user.id });
 
     if (profile) {
@@ -54,21 +29,17 @@ router.post('/', protect, async (req, res) => {
         { user: req.user.id },
         { $set: profileFields },
         { new: true }
-      ).populate('user', 'username email');
+      );
     } else {
       // Create
       profile = new Profile(profileFields);
       await profile.save();
-      await profile.populate('user', 'username email');
     }
 
     res.json(profile);
   } catch (error) {
-    console.error('Profile update error:', error);
-    res.status(500).json({ 
-      message: 'Server Error', 
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined 
-    });
+    console.error(error.message);
+    res.status(500).json({ message: 'Server Error' });
   }
 });
 

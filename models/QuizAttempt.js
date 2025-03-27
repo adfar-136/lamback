@@ -7,44 +7,28 @@ const quizAttemptSchema = new mongoose.Schema({
     required: true
   },
   techStack: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'TechStack',
-    required: true
-  },
-  difficulty: {
     type: String,
-    enum: ['beginner', 'intermediate', 'advanced'],
     required: true
   },
-  questions: [{
-    question: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Question'
-    },
-    selectedOption: {
-      type: Number
-    },
-    isCorrect: {
-      type: Boolean
-    },
-    timeSpent: {
-      type: Number
-    }
-  }],
-  totalScore: {
-    type: Number,
-    default: 0
+  level: {
+    type: String,
+    required: true,
+    enum: ['easy', 'medium', 'hard']
   },
-  totalTime: {
+  score: {
     type: Number,
-    default: 0
+    required: true
   },
-  completed: {
-    type: Boolean,
-    default: false
+  totalQuestions: {
+    type: Number,
+    required: true
+  },
+  completedAt: {
+    type: Date,
+    default: Date.now
   }
-}, {
-  timestamps: true
 });
 
-module.exports = mongoose.model('QuizAttempt', quizAttemptSchema);
+const QuizAttempt = mongoose.model('QuizAttempt', quizAttemptSchema);
+
+module.exports = QuizAttempt;

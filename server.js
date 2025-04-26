@@ -9,7 +9,7 @@ const companyRequirementRoutes = require('./routes/company-requirements');
 const contactRoutes = require('./routes/contact');
 const codingRoutes = require('./routes/coding');
 const practiceRoutes = require('./routes/practice');
-
+const enrollmentRoutes = require('./routes/enrollments');
 const app = express();
 // Middleware
 dotenv.config();
@@ -31,6 +31,7 @@ app.use('/api/company-requirements', companyRequirementRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/coding', codingRoutes);
 app.use('/api/practice', practiceRoutes);
+app.use('/api/enrollments', enrollmentRoutes);
 
 app.get('/', (req, res) => {
   res.json({ message: 'Welcome to Lamicons API' });

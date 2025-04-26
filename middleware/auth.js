@@ -1,37 +1,34 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
 
-exports.protect = async (req, res, next) => {
+// Protect routes
+const protect = (req, res, next) => {
   try {
-    let token;
-    
-    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-      token = req.headers.authorization.split(' ')[1];
-    }
+    // Get token from header
+    const token = req.header('Authorization')?.replace('Bearer ', '');
 
     if (!token) {
-      return res.status(401).json({ message: 'Not authorized to access this route' });
+      return res.status(401).json({ message: 'No auth token, access denied' });
     }
 
-    try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || "secret");
-      req.user = await User.findById(decoded.id).select('-password');
-      next();
-    } catch (error) {
-      return res.status(401).json({ message: 'Token is not valid' });
-    }
+    // Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "secret");
+    req.user = decoded;
+    next();
   } catch (error) {
-    return res.status(401).json({ message: 'Not authorized to access this route' });
+    res.status(401).json({ message: 'Token is invalid' });
   }
 };
 
-exports.authorize = (...roles) => {
+// Authorize roles
+const authorize = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {
-      return res.status(403).json({
-        message: `User role ${req.user.role} is not authorized to access this route`
+      return res.status(403).json({ 
+        message: 'User role not authorized to access this route' 
       });
     }
     next();
   };
 };
+
+module.exports = { protect, authorize };
